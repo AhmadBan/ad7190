@@ -54,7 +54,46 @@ static void MX_GPIO_Init(void);
 static void MX_CAN_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
+void AD7190RegSettingInit(void){
 
+	//Set Mode Register RS=[0 0 1]
+	uint32_t modeReg=
+			AD7190_MODE_SEL(AD7190_MODE_CONT)//set ADC to continues transmission mode
+		   //|AD7190_MODE_DAT_STA	//send status register after each conversion data
+		   |AD7190_MODE_CLKSRC(AD7190_CLK_INT)//internal clock and no clock out
+		   //using sinc4 for its better performance for 50/60 Hz noise in high data-Rate however it has more settling time
+		   //|AD7190_MODE_ENPAR//enable parity check for status register
+		   //using 2 channels so single conversion has no effect
+		   //|AD7190_MODE_REJ60 //using 60Hz noise rejection for countries with 60 Hz main power frequency
+		   |AD7190_MODE_RATE(96);//set 96 so first notch locates in 50 Hz
+
+	//Set Configuration Register RS=[0 1 0]
+	uint32_t confReg =
+			//CHOP is disabled
+			//default refsel
+			//AD7190_CONF_CHAN(AD7190_CH_AIN1P_AIN2M)
+			AD7190_CONF_CHAN(AD7190_CH_AIN3P_AIN4M)
+			//burn disable
+			//refdetect is   disabled
+			|AD7190_CONF_BUF//buffer is enabled
+			|AD7190_CONF_UNIPOLAR//unipolar mode is selected
+			|AD7190_CONF_GAIN(AD7190_CONF_GAIN_1);//gain 1 is selected
+
+	//Set GPOCon Register RS=[1 0 1]
+
+	//Set Offset Register RS=[1 1 0]
+
+	//Set Full-Scale Register RS=[1 1 1]
+
+	AD7190_SetRegisterValue(AD7190_REG_CONF, confReg, 3, 0);
+
+	confReg = AD7190_GetRegisterValue(AD7190_REG_CONF, 3, 0);
+
+	AD7190_SetRegisterValue(AD7190_REG_MODE, modeReg, 3, 0);
+
+	modeReg = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 0);
+
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -96,6 +135,8 @@ int main(void)
   AD7190_Reset();
   HAL_Delay(1);
   id=AD7190_GetRegisterValue(ID_AD7190,1,1);
+  AD7190RegSettingInit();
+
 
   /* USER CODE END 2 */
 

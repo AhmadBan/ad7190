@@ -30,7 +30,7 @@ unsigned char SPI_Init(unsigned char lsbFirst,
 
 /*! Reads data from SPI. */
 unsigned char SPI_Read(unsigned char slaveDeviceId,
-					   uint8_t address,
+					   uint8_t *address,
                        unsigned char* data,
                        unsigned char bytesNumber);
 

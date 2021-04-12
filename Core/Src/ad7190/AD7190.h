@@ -33,7 +33,7 @@
 #define AD7190_REG_DATA         3 // Data Register           (RO, 24/32-bit) 
 #define AD7190_REG_ID           4 // ID Register             (RO, 8-bit) 
 #define AD7190_REG_GPOCON       5 // GPOCON Register         (RW, 8-bit) 
-#define AD7190_REG_OFFSET       6 // Offset Register         (RW, 24-bit 
+#define AD7190_REG_OFFSET       6 // Offset Register         (RW, 24-bit)
 #define AD7190_REG_FULLSCALE    7 // Full-Scale Register     (RW, 24-bit)
 
 /* Communications Register Bit Designations (AD7190_REG_COMM) */
@@ -84,7 +84,7 @@
 /* Configuration Register Bit Designations (AD7190_REG_CONF) */
 #define AD7190_CONF_CHOP        (1 << 23)            // CHOP enable.
 #define AD7190_CONF_REFSEL      (1 << 20)            // REFIN1/REFIN2 Reference Select.
-#define AD7190_CONF_CHAN(x)     (((x) & 0xFF) << 8)  // Channel select.
+#define AD7190_CONF_CHAN(x)     ((1 << (x)) << 8)  // Channel select.
 #define AD7190_CONF_BURN        (1 << 7)             // Burnout current enable.
 #define AD7190_CONF_REFDET      (1 << 6)             // Reference detect enable.
 #define AD7190_CONF_BUF         (1 << 4)             // Buffered Mode Enable.

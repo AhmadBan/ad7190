@@ -2,7 +2,7 @@
  *   @file   Communication.c
  *   @brief  Implementation of Communication Driver.
  *   @author
-********************************************************************************/
+ ********************************************************************************/
 
 
 /******************************************************************************/
@@ -36,13 +36,13 @@ extern SPI_HandleTypeDef hspi1;
  * @return status - Result of the initialization procedure.
  *                  Example: 1 - if initialization was successful;
  *                           0 - if initialization was unsuccessful.
-*******************************************************************************/
+ *******************************************************************************/
 unsigned char SPI_Init(unsigned char lsbFirst,
-                       unsigned long clockFreq,
-                       unsigned char clockPol,
-                       unsigned char clockEdg)
+		unsigned long clockFreq,
+		unsigned char clockPol,
+		unsigned char clockEdg)
 {
-    /* Add code here. */
+	/* Add code here. */
 }
 
 /***************************************************************************//**
@@ -54,25 +54,25 @@ unsigned char SPI_Init(unsigned char lsbFirst,
  * @param bytesNumber - Number of bytes to read.
  *
  * @return Number of read bytes.
-*******************************************************************************/
+ *******************************************************************************/
 //TODO:add implementation for slaveid
-unsigned char SPI_Read(unsigned char slaveDeviceId,uint8_t address,unsigned char* data,
-                       unsigned char bytesNumber)
+unsigned char SPI_Read(unsigned char slaveDeviceId,uint8_t* address,unsigned char* data,
+		unsigned char bytesNumber)
 {
 
-	uint8_t dummy=0;
 
-	while(bytesNumber>0){
-		ADI_PART_CS_LOW;
-		if(HAL_SPI_TransmitReceive(&hspi1, &address, &data[0], bytesNumber, 10)!=HAL_OK){
-				ADI_PART_CS_HIGH;
-				return -1;
-		}
+
+
+	ADI_PART_CS_LOW;
+	if(HAL_SPI_TransmitReceive(&hspi1, address, data, bytesNumber, 10)!=HAL_OK){
 		ADI_PART_CS_HIGH;
-		bytesNumber--;
+		return -1;
 	}
+	ADI_PART_CS_HIGH;
 
-    return bytesNumber;
+
+
+	return bytesNumber;
 }
 
 /***************************************************************************//**
@@ -83,14 +83,14 @@ unsigned char SPI_Read(unsigned char slaveDeviceId,uint8_t address,unsigned char
  * @param bytesNumber - Number of bytes to write.
  *
  * @return Number of written bytes.
-*******************************************************************************/
+ *******************************************************************************/
 unsigned char SPI_Write(unsigned char slaveDeviceId,
-                        unsigned char* data,
-                        unsigned char bytesNumber)
+		unsigned char* data,
+		unsigned char bytesNumber)
 {
 	ADI_PART_CS_LOW;
-    if(HAL_SPI_Transmit(&hspi1, data, bytesNumber,10)!=HAL_OK)
-    	return -1;
-    ADI_PART_CS_HIGH;
-    return bytesNumber;
+	if(HAL_SPI_Transmit(&hspi1, data, bytesNumber,10)!=HAL_OK)
+		return -1;
+	ADI_PART_CS_HIGH;
+	return bytesNumber;
 }

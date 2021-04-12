@@ -55,16 +55,17 @@ unsigned long AD7190_GetRegisterValue(unsigned char registerAddress,
                                       unsigned char modifyCS)
 {
     unsigned char registerWord[5] = {0, 0, 0, 0, 0}; 
+    unsigned char dummy[5]={0,0,0,0,0};
     unsigned long buffer          = 0x0;
     unsigned char i               = 0;
-    uint8_t comReg=0,dummy=0;
+    uint8_t comReg=0;
     
-    comReg= AD7190_COMM_READ |
+    dummy[0]= AD7190_COMM_READ |
                       AD7190_COMM_ADDR(registerAddress);
-    SPI_Read(AD7190_SLAVE_ID * modifyCS,comReg, &dummy, 1);
+//    SPI_Read(AD7190_SLAVE_ID * modifyCS,&comReg, dummy, 1);
 
-    SPI_Read(AD7190_SLAVE_ID * modifyCS,dummy, &registerWord[0], bytesNumber);
-    for(i = 0; i < bytesNumber ; i++)
+    SPI_Read(AD7190_SLAVE_ID * modifyCS,dummy, registerWord, bytesNumber+1);
+    for(i = 1; i < bytesNumber+1 ; i++)
     {
         buffer = (buffer << 8) + registerWord[i];
     }
