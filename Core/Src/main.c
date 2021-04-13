@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -46,6 +46,8 @@ SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
 uint8_t id;
+uint16_t counter=0;
+uint32_t data[1000];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,27 +56,46 @@ static void MX_GPIO_Init(void);
 static void MX_CAN_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
+
+void enableInterruptOnMiso(void){
+
+	/*Configure GPIO pin : PB5 */
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_4;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+	HAL_NVIC_DisableIRQ(EXTI4_IRQn);
+
+}
+
+
+
+
 void AD7190RegSettingInit(void){
 
 	//Set Mode Register RS=[0 0 1]
 	uint32_t modeReg=
 			AD7190_MODE_SEL(AD7190_MODE_CONT)//set ADC to continues transmission mode
-		   //|AD7190_MODE_DAT_STA	//send status register after each conversion data
-		   |AD7190_MODE_CLKSRC(AD7190_CLK_INT)//internal clock and no clock out
-		   //using sinc4 for its better performance for 50/60 Hz noise in high data-Rate however it has more settling time
-		   //|AD7190_MODE_ENPAR//enable parity check for status register
-		   //using 2 channels so single conversion has no effect
-		   //|AD7190_MODE_REJ60 //using 60Hz noise rejection for countries with 60 Hz main power frequency
-		   |AD7190_MODE_RATE(96);//set 96 so first notch locates in 50 Hz
+			|AD7190_MODE_DAT_STA	//send status register after each conversion data
+			|AD7190_MODE_CLKSRC(AD7190_CLK_INT)//internal clock and no clock out
+			//using sinc4 for its better performance for 50/60 Hz noise in high data-Rate however it has more settling time
+			//|AD7190_MODE_ENPAR//enable parity check for status register
+			//using 2 channels so single conversion has no effect
+			//|AD7190_MODE_REJ60 //using 60Hz noise rejection for countries with 60 Hz main power frequency
+			|AD7190_MODE_RATE(96);//set 96 so first notch locates in 50 Hz
 
 	//Set Configuration Register RS=[0 1 0]
 	uint32_t confReg =
-			//CHOP is disabled
+			//AD7190_CONF_CHOP//CHOP is disabled
 			//default refsel
 			//AD7190_CONF_CHAN(AD7190_CH_AIN1P_AIN2M)
-			AD7190_CONF_CHAN(AD7190_CH_AIN3P_AIN4M)
+			AD7190_CONF_CHAN(AD7190_CH_TEMP_SENSOR)
 			//burn disable
-			//refdetect is   disabled
+			|AD7190_CONF_REFDET//refdetect is   disabled
 			|AD7190_CONF_BUF//buffer is enabled
 			|AD7190_CONF_UNIPOLAR//unipolar mode is selected
 			|AD7190_CONF_GAIN(AD7190_CONF_GAIN_1);//gain 1 is selected
@@ -92,6 +113,9 @@ void AD7190RegSettingInit(void){
 	AD7190_SetRegisterValue(AD7190_REG_MODE, modeReg, 3, 0);
 
 	modeReg = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 0);
+
+	//status=AD7190_GetRegisterValue(AD7190_REG_STAT, 1, 0);
+
 
 }
 /* USER CODE END PFP */
@@ -132,24 +156,30 @@ int main(void)
   MX_CAN_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  enableInterruptOnMiso();
   AD7190_Reset();
   HAL_Delay(1);
   id=AD7190_GetRegisterValue(ID_AD7190,1,1);
   AD7190RegSettingInit();
 
-
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-	  //HAL_GPIO_TogglePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin);
-	  HAL_Delay(1);
+	while (1)
+	{
+
+		ADI_PART_CS_LOW;
+
+
+
+
+		HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -325,7 +355,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint32_t temp;
+uint8_t status=0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	HAL_NVIC_DisableIRQ(EXTI4_IRQn);
+	switch (GPIO_Pin){
 
+	case GPIO_PIN_4:
+
+
+		temp=AD7190_GetRegisterValue(AD7190_REG_DATA, 4, 0);
+//		status=temp&0xff;
+
+		data[counter++]=(temp>>8 - 0x800000)/2815-273;
+		if(counter==1000)
+			counter=0;
+
+
+		__HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+		ADI_PART_CS_LOW;
+		HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+		break;
+	}
+}
 /* USER CODE END 4 */
 
 /**
@@ -335,11 +387,11 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1)
+	{
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -354,7 +406,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
