@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "can.h"
 #include "spi.h"
 #include "gpio.h"
 
@@ -46,8 +45,8 @@
 
 /* USER CODE BEGIN PV */
 uint8_t id;
-uint16_t counter=0;
-uint32_t data[1000];
+uint16_t counter1=0,counter2=0;
+float channel1[1000],channel2[1000];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,7 +94,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_CAN_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   //Initialize Interrupt On SPI MISO Pin because SPI and Interrupt block are independent
@@ -145,7 +143,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -154,12 +154,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -190,7 +190,7 @@ void disableInterruptOnMiso(void){
 	HAL_NVIC_DisableIRQ(EXTI4_IRQn);
 }
 uint32_t temp;
-uint8_t status[1000];
+uint8_t status;
 
 /*
  * Catch data on the falling edge of MISO pin
@@ -206,12 +206,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 		temp=AD7190_GetRegisterValue(AD7190_REG_DATA, 4, 0);
 
-		status[counter++]=temp&0xff;
+		status=temp&0xff;
+		if((status&0x7)==0){
+			channel1[counter1++]=((temp>>8)*4.096/0x800000-4.096);
+			if(counter1==300)
+				counter1=0;
+		}
+		if((status&0x7)==1){
+			channel2[counter2++]=((temp>>8)*4.096/0x800000-4.096);
+			if(counter2==300)
+				counter2=0;
+		}
 
-		data[counter]=(temp>>8 - 0x800000)/2815-273;
-
-		if(counter==1000)
-			counter=0;
 
 		enableInterruptOnMiso(GPIO_Pin);
 		ADI_PART_CS_LOW;

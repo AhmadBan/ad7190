@@ -78,6 +78,7 @@ unsigned long AD7190_GetRegisterValue(unsigned char registerAddress,
  *
  * @return status - Indicates if the part is present or not.
  *******************************************************************************/
+uint32_t offset=0,scale=0;
 unsigned char AD7190_Init(void)
 {
 	unsigned char status = 1;
@@ -107,15 +108,15 @@ unsigned char AD7190_Init(void)
 			|AD7190_MODE_RATE(96);//set 96 so first notch locates in 50 Hz
 
 	//Set Configuration Register RS=[0 1 0]
-	readConfReg =
+	writeConfReg =
 			//AD7190_CONF_CHOP//CHOP is disabled
 			//default refsel
 			//AD7190_CONF_CHAN(AD7190_CH_AIN1P_AIN2M)
-			AD7190_CONF_CHAN(AD7190_CH_TEMP_SENSOR)
+			AD7190_CONF_CHAN(AD7190_CH_AIN1P_AIN2M)|AD7190_CONF_CHAN(AD7190_CH_AIN3P_AIN4M)
 			//burn disable
 			|AD7190_CONF_REFDET//refdetect is   disabled
 			|AD7190_CONF_BUF//buffer is enabled
-			|AD7190_CONF_UNIPOLAR//unipolar mode is selected
+			//|AD7190_CONF_UNIPOLAR//unipolar mode is selected
 			|AD7190_CONF_GAIN(AD7190_CONF_GAIN_1);//gain 1 is selected
 
 	//Set GPOCon Register RS=[1 0 1]
@@ -124,20 +125,24 @@ unsigned char AD7190_Init(void)
 
 	//Set Full-Scale Register RS=[1 1 1]
 
-	AD7190_SetRegisterValue(AD7190_REG_CONF, writeConfReg, 3, 0);
 
+
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN1P_AIN2M);
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_FULL,AD7190_CH_AIN1P_AIN2M);
+
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN3P_AIN4M);
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_FULL,AD7190_CH_AIN3P_AIN4M);
+
+	AD7190_SetRegisterValue(AD7190_REG_CONF, writeConfReg, 3, 0);
 	readConfReg = AD7190_GetRegisterValue(AD7190_REG_CONF, 3, 0);
+
 	if(writeConfReg!=readConfReg)
-			return 0;
+		return 0;
 
 	AD7190_SetRegisterValue(AD7190_REG_MODE, writeModeReg, 3, 0);
-
 	readModeReg = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 0);
 	if(readModeReg!=writeModeReg)
-			return 0;
-
-
-
+		return 0;
 
 	return status ;
 }
@@ -212,7 +217,7 @@ void AD7190_ChannelSelect(unsigned short channel)
 
 	oldRegValue = AD7190_GetRegisterValue(AD7190_REG_CONF, 3, 1);
 	oldRegValue &= ~(AD7190_CONF_CHAN(0xFF));
-	newRegValue = oldRegValue | AD7190_CONF_CHAN(1 << channel);
+	newRegValue = oldRegValue | AD7190_CONF_CHAN(channel);
 	AD7190_SetRegisterValue(AD7190_REG_CONF, newRegValue, 3, 1);
 }
 
