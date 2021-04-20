@@ -2,7 +2,7 @@
  *   @file   AD7190.c
  *   @brief  Implementation of AD7190 Driver.
  *   @author
- ********************************************************************************
+ ********************************************************************************/
 
 
 /******************************************************************************/
@@ -21,14 +21,14 @@
  *
  * @return none.
  *******************************************************************************/
-void AD7190_SetRegisterValue(unsigned char registerAddress,
-		unsigned long registerValue,
-		unsigned char bytesNumber,
-		unsigned char modifyCS)
+void AD7190_SetRegisterValue(uint8_t registerAddress,
+		uint32_t registerValue,
+		uint8_t bytesNumber,
+		uint8_t modifyCS)
 {
-	unsigned char writeCommand[5] = {0, 0, 0, 0, 0};
-	unsigned char* dataPointer    = (unsigned char*)&registerValue;
-	unsigned char bytesNr         = bytesNumber;
+	uint8_t writeCommand[5] = {0, 0, 0, 0, 0};
+	uint8_t* dataPointer    = (uint8_t*)&registerValue;
+	uint8_t bytesNr         = bytesNumber;
 
 	writeCommand[0] = AD7190_COMM_WRITE |
 			AD7190_COMM_ADDR(registerAddress);
@@ -50,15 +50,15 @@ void AD7190_SetRegisterValue(unsigned char registerAddress,
  *
  * @return buffer - Value of the register.
  *******************************************************************************/
-unsigned long AD7190_GetRegisterValue(unsigned char registerAddress,
-		unsigned char bytesNumber,
-		unsigned char modifyCS)
+uint32_t AD7190_GetRegisterValue(uint8_t registerAddress,
+		uint8_t bytesNumber,
+		uint8_t modifyCS)
 {
-	unsigned char registerWord[5] = {0, 0, 0, 0, 0};
-	unsigned char dummy[5]={0,0,0,0,0};
-	unsigned long buffer          = 0x0;
-	unsigned char i               = 0;
-	uint8_t comReg=0;
+	uint8_t registerWord[5] = {0, 0, 0, 0, 0};
+	uint8_t dummy[5]={0,0,0,0,0};
+	uint32_t buffer          = 0x0;
+	uint8_t i               = 0;
+
 
 	dummy[0]= AD7190_COMM_READ |
 			AD7190_COMM_ADDR(registerAddress);
@@ -79,10 +79,10 @@ unsigned long AD7190_GetRegisterValue(unsigned char registerAddress,
  * @return status - Indicates if the part is present or not.
  *******************************************************************************/
 uint32_t offset=0,scale=0;
-unsigned char AD7190_Init(void)
+uint8_t AD7190_Init(void)
 {
-	unsigned char status = 1;
-	unsigned char regVal = 0;
+	uint8_t status = 1;
+	uint8_t regVal = 0;
 	uint32_t writeModeReg,readModeReg;
 	uint32_t writeConfReg,readConfReg;
 
@@ -120,30 +120,22 @@ unsigned char AD7190_Init(void)
 			|AD7190_CONF_GAIN(AD7190_CONF_GAIN_1);//gain 1 is selected
 
 	//Set GPOCon Register RS=[1 0 1]
-
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN3P_AIN4M);
 	//Set Offset Register RS=[1 1 0]
-
+	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN1P_AIN2M);
 	//Set Full-Scale Register RS=[1 1 1]
 
-
-
-	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN1P_AIN2M);
 	AD7190_Calibrate(AD7190_MODE_CAL_INT_FULL,AD7190_CH_AIN1P_AIN2M);
-
-	AD7190_Calibrate(AD7190_MODE_CAL_INT_ZERO,AD7190_CH_AIN3P_AIN4M);
 	AD7190_Calibrate(AD7190_MODE_CAL_INT_FULL,AD7190_CH_AIN3P_AIN4M);
 
 	AD7190_SetRegisterValue(AD7190_REG_CONF, writeConfReg, 3, 0);
 	readConfReg = AD7190_GetRegisterValue(AD7190_REG_CONF, 3, 0);
-
 	if(writeConfReg!=readConfReg)
 		return 0;
-
 	AD7190_SetRegisterValue(AD7190_REG_MODE, writeModeReg, 3, 0);
 	readModeReg = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 0);
 	if(readModeReg!=writeModeReg)
 		return 0;
-
 	return status ;
 }
 
@@ -154,7 +146,7 @@ unsigned char AD7190_Init(void)
  *******************************************************************************/
 void AD7190_Reset(void)
 {
-	unsigned char registerWord[7];
+	uint8_t registerWord[7];
 
 	registerWord[0] = 0x01;
 	registerWord[1] = 0xFF;
@@ -175,10 +167,10 @@ void AD7190_Reset(void)
  *
  * @return none.
  *******************************************************************************/
-void AD7190_SetPower(unsigned char pwrMode)
+void AD7190_SetPower(uint8_t pwrMode)
 {
-	unsigned long oldPwrMode = 0x0;
-	unsigned long newPwrMode = 0x0;
+	uint32_t oldPwrMode = 0x0;
+	uint32_t newPwrMode = 0x0;
 
 	oldPwrMode = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 1);
 	oldPwrMode &= ~(AD7190_MODE_SEL(0x7));
@@ -195,7 +187,7 @@ void AD7190_SetPower(unsigned char pwrMode)
  *******************************************************************************/
 void AD7190_WaitRdyGoLow(void)
 {
-	unsigned long timeOutCnt = 0xFFFFF;
+	uint32_t timeOutCnt = 0xFFFFF;
 
 	while(AD7190_RDY_STATE && timeOutCnt--)
 	{
@@ -210,10 +202,10 @@ void AD7190_WaitRdyGoLow(void)
  *  
  * @return none.
  *******************************************************************************/
-void AD7190_ChannelSelect(unsigned short channel)
+void AD7190_ChannelSelect(uint16_t channel)
 {
-	unsigned long oldRegValue = 0x0;
-	unsigned long newRegValue = 0x0;
+	uint32_t oldRegValue = 0x0;
+	uint32_t newRegValue = 0x0;
 
 	oldRegValue = AD7190_GetRegisterValue(AD7190_REG_CONF, 3, 1);
 	oldRegValue &= ~(AD7190_CONF_CHAN(0xFF));
@@ -229,10 +221,10 @@ void AD7190_ChannelSelect(unsigned short channel)
  *
  * @return none.
  *******************************************************************************/
-void AD7190_Calibrate(unsigned char mode, unsigned char channel)
+void AD7190_Calibrate(uint8_t mode, uint8_t channel)
 {
-	unsigned long oldRegValue = 0x0;
-	unsigned long newRegValue = 0x0;
+	uint32_t oldRegValue = 0x0;
+	uint32_t newRegValue = 0x0;
 
 	AD7190_ChannelSelect(channel);
 	oldRegValue = AD7190_GetRegisterValue(AD7190_REG_MODE, 3, 1);
@@ -255,10 +247,10 @@ void AD7190_Calibrate(unsigned char mode, unsigned char channel)
  *
  * @return none.
  *******************************************************************************/
-void AD7190_RangeSetup(unsigned char polarity, unsigned char range)
+void AD7190_RangeSetup(uint8_t polarity, uint8_t range)
 {
-	unsigned long oldRegValue = 0x0;
-	unsigned long newRegValue = 0x0;
+	uint32_t oldRegValue = 0x0;
+	uint32_t newRegValue = 0x0;
 
 	oldRegValue = AD7190_GetRegisterValue(AD7190_REG_CONF,3, 1);
 	oldRegValue &= ~(AD7190_CONF_UNIPOLAR |
@@ -274,10 +266,10 @@ void AD7190_RangeSetup(unsigned char polarity, unsigned char range)
  *
  * @return regData - Result of a single analog-to-digital conversion.
  *******************************************************************************/
-unsigned long AD7190_SingleConversion(void)
+uint32_t AD7190_SingleConversion(void)
 {
-	unsigned long command = 0x0;
-	unsigned long regData = 0x0;
+	uint32_t command = 0x0;
+	uint32_t regData = 0x0;
 
 	command = AD7190_MODE_SEL(AD7190_MODE_SINGLE) |
 			AD7190_MODE_CLKSRC(AD7190_CLK_INT) |
@@ -296,11 +288,11 @@ unsigned long AD7190_SingleConversion(void)
  *
  * @return samplesAverage - The average of the conversion results.
  *******************************************************************************/
-unsigned long AD7190_ContinuousReadAvg(unsigned char sampleNumber)
+uint32_t AD7190_ContinuousReadAvg(uint8_t sampleNumber)
 {
-	unsigned long samplesAverage = 0x0;
-	unsigned char count = 0x0;
-	unsigned long command = 0x0;
+	uint32_t samplesAverage = 0x0;
+	uint8_t count = 0x0;
+	uint32_t command = 0x0;
 
 	command = AD7190_MODE_SEL(AD7190_MODE_CONT) |
 			AD7190_MODE_CLKSRC(AD7190_CLK_INT) |
@@ -324,10 +316,10 @@ unsigned long AD7190_ContinuousReadAvg(unsigned char sampleNumber)
  *
  * @return temperature - Celsius degrees.
  *******************************************************************************/
-unsigned long AD7190_TemperatureRead(void)
+uint32_t AD7190_TemperatureRead(void)
 {
-	unsigned char temperature = 0x0;
-	unsigned long dataReg = 0x0;
+	uint8_t temperature = 0x0;
+	uint32_t dataReg = 0x0;
 
 	AD7190_RangeSetup(0, AD7190_CONF_GAIN_1);
 	AD7190_ChannelSelect(AD7190_CH_TEMP_SENSOR);
@@ -335,7 +327,7 @@ unsigned long AD7190_TemperatureRead(void)
 	dataReg -= 0x800000;
 	dataReg /= 2815;   // Kelvin Temperature
 	dataReg -= 273;    //Celsius Temperature
-	temperature = (unsigned long) dataReg;
+	temperature = (uint32_t) dataReg;
 
 	return temperature;
 }

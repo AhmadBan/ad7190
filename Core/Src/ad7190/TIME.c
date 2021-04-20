@@ -25,9 +25,10 @@
  *                  Example: 1 - if initialization was successful;
  *                           0 - if initialization was unsuccessful.
 *******************************************************************************/
-unsigned char TIME_Init(void)
+uint8_t TIME_Init(void)
 {
     // Add your code here.
+	return -1;
 }
 
 /***************************************************************************//**
@@ -39,6 +40,7 @@ unsigned char TIME_Init(void)
 void TIME_StartMeasure(void)
 {
     // Add your code here.
+
 }
 
 /***************************************************************************//**
@@ -46,9 +48,10 @@ void TIME_StartMeasure(void)
  *
  * @return Time(in microseconds) elapsed since the measurement began.
 *******************************************************************************/
-unsigned long TIME_StopMeasure(void)
+uint32_t TIME_StopMeasure(void)
 {
     // Add your code here.
+	return -1;
 }
 
 /***************************************************************************//**
@@ -56,9 +59,10 @@ unsigned long TIME_StopMeasure(void)
  *
  * @return None.
 *******************************************************************************/
-void TIME_DelayUs(unsigned short usUnits)
+void TIME_DelayUs(uint16_t usUnits)
 {
     // Add your code here.
+
 }
 
 /***************************************************************************//**
@@ -66,7 +70,7 @@ void TIME_DelayUs(unsigned short usUnits)
  *
  * @return None.
 *******************************************************************************/
-void TIME_DelayMs(unsigned short msUnits)
+void TIME_DelayMs(uint16_t msUnits)
 {
     HAL_Delay(msUnits);
 }

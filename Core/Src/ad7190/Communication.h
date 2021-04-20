@@ -17,26 +17,26 @@
 
 
 /*! Initializes the SPI communication peripheral. */
-unsigned char SPI_Init(unsigned char lsbFirst,
-                       unsigned long clockFreq,
-                       unsigned char clockPol,
-                       unsigned char clockEdg);
+uint8_t SPI_Init(uint8_t lsbFirst,
+                       uint32_t clockFreq,
+                       uint8_t clockPol,
+                       uint8_t clockEdg);
 
 /*! Initializes the SPI communication peripheral. */
-unsigned char SPI_Init(unsigned char lsbFirst,
-                       unsigned long clockFreq,
-                       unsigned char clockPol,
-                       unsigned char clockEdg);
+uint8_t SPI_Init(uint8_t lsbFirst,
+                       uint32_t clockFreq,
+                       uint8_t clockPol,
+                       uint8_t clockEdg);
 
 /*! Reads data from SPI. */
-unsigned char SPI_Read(unsigned char slaveDeviceId,
+uint8_t SPI_Read(uint8_t slaveDeviceId,
 					   uint8_t *address,
-                       unsigned char* data,
-                       unsigned char bytesNumber);
+                       uint8_t* data,
+                       uint8_t bytesNumber);
 
 /*! Writes data to SPI. */
-unsigned char SPI_Write(unsigned char slaveDeviceId,
-                        unsigned char* data,
-                        unsigned char bytesNumber);
+uint8_t SPI_Write(uint8_t slaveDeviceId,
+                        uint8_t* data,
+                        uint8_t bytesNumber);
 
 #endif /* _COMMUNICATION_H_ */

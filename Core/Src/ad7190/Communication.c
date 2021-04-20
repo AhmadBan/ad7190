@@ -37,12 +37,13 @@ extern SPI_HandleTypeDef hspi1;
  *                  Example: 1 - if initialization was successful;
  *                           0 - if initialization was unsuccessful.
  *******************************************************************************/
-unsigned char SPI_Init(unsigned char lsbFirst,
-		unsigned long clockFreq,
-		unsigned char clockPol,
-		unsigned char clockEdg)
+uint8_t SPI_Init(uint8_t lsbFirst,
+		uint32_t clockFreq,
+		uint8_t clockPol,
+		uint8_t clockEdg)
 {
 	/* Add code here. */
+	return -1;
 }
 
 /***************************************************************************//**
@@ -56,8 +57,8 @@ unsigned char SPI_Init(unsigned char lsbFirst,
  * @return Number of read bytes.
  *******************************************************************************/
 //TODO:add implementation for slaveid
-unsigned char SPI_Read(unsigned char slaveDeviceId,uint8_t* address,unsigned char* data,
-		unsigned char bytesNumber)
+uint8_t SPI_Read(uint8_t slaveDeviceId,uint8_t* address,uint8_t* data,
+		uint8_t bytesNumber)
 {
 
 
@@ -84,9 +85,9 @@ unsigned char SPI_Read(unsigned char slaveDeviceId,uint8_t* address,unsigned cha
  *
  * @return Number of written bytes.
  *******************************************************************************/
-unsigned char SPI_Write(unsigned char slaveDeviceId,
-		unsigned char* data,
-		unsigned char bytesNumber)
+uint8_t SPI_Write(uint8_t slaveDeviceId,
+		uint8_t* data,
+		uint8_t bytesNumber)
 {
 	ADI_PART_CS_LOW;
 	if(HAL_SPI_Transmit(&hspi1, data, bytesNumber,10)!=HAL_OK)

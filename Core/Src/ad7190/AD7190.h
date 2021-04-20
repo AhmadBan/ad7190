@@ -129,44 +129,44 @@
 /******************************************************************************/
 
 /*! Writes data into a register. */
-void AD7190_SetRegisterValue(unsigned char registerAddress,
-                             unsigned long registerValue,
-                             unsigned char bytesNumber,
-                             unsigned char modifyCS);
+void AD7190_SetRegisterValue(uint8_t registerAddress,
+                             uint32_t registerValue,
+                             uint8_t bytesNumber,
+                             uint8_t modifyCS);
 
 /*! Reads the value of a register. */
-unsigned long AD7190_GetRegisterValue(unsigned char registerAddress,
-                                      unsigned char bytesNumber,
-                                      unsigned char modifyCS);
+uint32_t AD7190_GetRegisterValue(uint8_t registerAddress,
+                                      uint8_t bytesNumber,
+                                      uint8_t modifyCS);
 
 /*! Checks if the AD7139 part is present. */
-unsigned char AD7190_Init(void);
+uint8_t AD7190_Init(void);
 
 /*! Resets the device. */
 void AD7190_Reset(void);
 
 /*! Set device to idle or power-down. */
-void AD7190_SetPower(unsigned char pwrMode);
+void AD7190_SetPower(uint8_t pwrMode);
 
 /*! Waits for RDY pin to go low. */
 void AD7190_WaitRdyGoLow(void);
 
 /*! Selects the channel to be enabled. */
-void AD7190_ChannelSelect(unsigned short channel);
+void AD7190_ChannelSelect(uint16_t channel);
 
 /*! Performs the given calibration to the specified channel. */
-void AD7190_Calibrate(unsigned char mode, unsigned char channel);
+void AD7190_Calibrate(uint8_t mode, uint8_t channel);
 
 /*! Selects the polarity of the conversion and the ADC input range. */
-void AD7190_RangeSetup(unsigned char polarity, unsigned char range);
+void AD7190_RangeSetup(uint8_t polarity, uint8_t range);
 
 /*! Returns the result of a single conversion. */
-unsigned long AD7190_SingleConversion(void);
+uint32_t AD7190_SingleConversion(void);
 
 /*! Returns the average of several conversion results. */
-unsigned long AD7190_ContinuousReadAvg(unsigned char sampleNumber);
+uint32_t AD7190_ContinuousReadAvg(uint8_t sampleNumber);
 
 /*! Read data from temperature sensor and converts it to Celsius degrees. */
-unsigned long AD7190_TemperatureRead(void);
+uint32_t AD7190_TemperatureRead(void);
 
 #endif /* __AD7190_H__ */

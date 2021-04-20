@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "can.h"
 #include "spi.h"
 #include "gpio.h"
 
@@ -48,6 +49,12 @@
 uint8_t id;
 uint16_t counter1=0,counter2=0;
 float channel1[1000],channel2[1000];
+extern CAN_TxHeaderTypeDef   TxHeader;
+extern CAN_RxHeaderTypeDef   RxHeader;
+extern uint8_t               TxData[8];
+extern uint8_t               RxData[8];
+extern uint32_t              TxMailbox;
+extern CAN_HandleTypeDef hcan;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,38 +104,46 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_CAN_Init();
   /* USER CODE BEGIN 2 */
-  //Initialize Interrupt On SPI MISO Pin because SPI and Interrupt block are independent
-  initInterruptOnMiso();
+	configCANFilter();
+	//Initialize Interrupt On SPI MISO Pin because SPI and Interrupt block are independent
+	initInterruptOnMiso();
 
-//Resets AD7190 all registers to default value
-  AD7190_Reset();
-  //wait at least 500uS after reset due to datasheet
-  HAL_Delay(1);
-  //check if AD7190 is working correctly then initialize its registers
-//  if(!AD7190_Init()){
-//	//send some message to user in Console
-//	//error led blinking here
-//	  HAL_Delay(1000);
-//	  while(1);
-//  }
+	//Resets AD7190 all registers to default value
+	AD7190_Reset();
+	//wait at least 500uS after reset due to datasheet
+	HAL_Delay(1);
+	//check if AD7190 is working correctly then initialize its registers
+	//  if(!AD7190_Init()){
+	//	//send some message to user in Console
+	//	//error led blinking here
+	//	  HAL_Delay(1000);
+	//	  while(1);
+	//  }
 
-  //enable interrupt on MISO pin and reset interrupt flag
-  enableInterruptOnMiso(GPIO_PIN_4);
-  //pull cs low so MISO start toggling on data-ready
-  ADI_PART_CS_LOW;
+	//enable interrupt on MISO pin and reset interrupt flag
+	enableInterruptOnMiso(GPIO_PIN_4);
+	//pull cs low so MISO start toggling on data-ready
+	ADI_PART_CS_LOW;
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
-  /* Start scheduler */
-  osKernelStart();
+//  MX_FREERTOS_Init();
+//  /* Start scheduler */
+//  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
+		if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+		{
+			/* Transmission request Error */
+			Error_Handler();
+		}
+		HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
